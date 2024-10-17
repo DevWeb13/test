@@ -19,7 +19,8 @@ import { CacheFirst } from 'workbox-strategies';
 // const revision = import.meta.env.VITE_GIT_COMMIT_HASH;
 
 precacheAndRoute([
-  { url: '/*', revision: null },
+  { url: '/', revision: null },
+  { url: '/about', revision: null },
   // { url: '/icon/icon-192x192.png', revision },
   // { url: '/icon/icon-256x256.png', revision },
   // { url: '/icon/icon-384x384.png', revision },
