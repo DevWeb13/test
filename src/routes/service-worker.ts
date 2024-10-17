@@ -16,12 +16,11 @@ try {
   if (Array.isArray(self.__WB_MANIFEST) && self.__WB_MANIFEST.length > 0) {
     precacheAndRoute(self.__WB_MANIFEST);
   }
+  // Ajouter le manifest.json explicitement pour être mis en cache
+  precacheAndRoute([{ url: '/manifest.json', revision: null }]);
 } catch (e) {
   console.error('Failed to precache resources:', e);
 }
-
-// Nettoie les caches obsolètes
-cleanupOutdatedCaches();
 
 // Mettre en cache les fichiers statiques (images, CSS, JS) avec CacheFirst
 registerRoute(
@@ -30,7 +29,7 @@ registerRoute(
     request.destination === 'script' ||
     request.destination === 'image',
   new CacheFirst({
-    cacheName: 'static-assets',
+    cacheName: 'qwik-app-static-assets',
   })
 );
 
@@ -38,10 +37,12 @@ registerRoute(
 registerRoute(
   ({ request }) => request.mode === 'navigate',
   new NetworkFirst({
-    cacheName: 'ssr-pages',
+    cacheName: 'qwik-app-ssr-pages',
   })
 );
 
+// Nettoie les caches obsolètes
+cleanupOutdatedCaches();
 // Initialiser le service worker de Qwik pour précharger les ressources spécifiques
 setupServiceWorker();
 
