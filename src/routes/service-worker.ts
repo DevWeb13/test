@@ -1,46 +1,56 @@
 /*
- * WHAT IS THIS FILE?
- *
- * The service-worker.ts file is used to have state of the art prefetching.
- * https://qwik.dev/qwikcity/prefetching/overview/
- *
- * Qwik uses a service worker to speed up your site and reduce latency, ie, not used in the traditional way of offline.
- * You can also use this file to add more functionality that runs in the service worker.
+ * Service Worker File for Offline Support in Qwik SSR
+ * This file configures the service worker to enable offline functionality for your Qwik application.
  */
+
 import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
-import {
-  cleanupOutdatedCaches,
-  createHandlerBoundToURL,
-  precacheAndRoute,
-} from 'workbox-precaching';
-import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { CacheFirst } from 'workbox-strategies';
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst } from 'workbox-strategies';
 
-// const revision = import.meta.env.VITE_GIT_COMMIT_HASH;
+// Déclare la portée du service worker
+declare const self: ServiceWorkerGlobalScope;
 
-precacheAndRoute([
-  { url: '/', revision: null },
-  { url: '/about', revision: null },
-  // { url: '/icon/icon-192x192.png', revision },
-  // { url: '/icon/icon-256x256.png', revision },
-  // { url: '/icon/icon-384x384.png', revision },
-  // { url: '/icon/icon-512x512.png', revision },
-]);
+// Précharge les ressources critiques (générées lors de la compilation)
+try {
+  if (Array.isArray(self.__WB_MANIFEST) && self.__WB_MANIFEST.length > 0) {
+    precacheAndRoute(self.__WB_MANIFEST);
+  }
+} catch (e) {
+  console.error('Failed to precache resources:', e);
+}
 
+// Nettoie les caches obsolètes
 cleanupOutdatedCaches();
 
-registerRoute(new NavigationRoute(createHandlerBoundToURL('/')));
-// registerRoute(new NavigationRoute(createHandlerBoundToURL('/?pwa=true')));
+// Mettre en cache les fichiers statiques (images, CSS, JS) avec CacheFirst
 registerRoute(
   ({ request }) =>
-    request.destination === 'style' || request.destination === 'image',
-  new CacheFirst()
+    request.destination === 'style' ||
+    request.destination === 'script' ||
+    request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'static-assets',
+  })
 );
 
+// Mettre en cache les pages HTML générées en SSR avec NetworkFirst
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new NetworkFirst({
+    cacheName: 'ssr-pages',
+  })
+);
+
+// Initialiser le service worker de Qwik pour précharger les ressources spécifiques
 setupServiceWorker();
 
-addEventListener('install', () => self.skipWaiting());
+// Skip waiting pour activer le nouveau service worker immédiatement après l'installation
+addEventListener('install', () => {
+  self.skipWaiting();
+});
 
-addEventListener('activate', () => self.clients.claim());
-
-declare const self: ServiceWorkerGlobalScope;
+// Claim clients pour prendre le contrôle immédiatement après l'activation
+addEventListener('activate', () => {
+  self.clients.claim();
+});
