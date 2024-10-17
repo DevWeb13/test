@@ -16,9 +16,6 @@ self.addEventListener('install', (event) => {
     caches.open('offline-cache').then((cache) => {
       return cache.addAll([
         '/', // Cache la page d'accueil ou la route principale
-        '/offline.html', // Une page fallback hors-ligne
-        '/styles.css', // Ton CSS principal
-        '/script.js', // Ton JS principal
       ]);
     })
   );
