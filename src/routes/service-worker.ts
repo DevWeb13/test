@@ -19,7 +19,6 @@ self.addEventListener('install', (event: ExtendableEvent) => {
         '/', // Cache la page d'accueil
         '/build/qwik.js', // Fichier JS généré par Qwik
         '/build/qwik.css', // Fichier CSS généré par Qwik
-        '/offline.html', // Page fallback hors-ligne (si nécessaire)
       ]);
     })
   );
