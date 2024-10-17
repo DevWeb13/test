@@ -1,3 +1,9 @@
 import { component$ } from '@builder.io/qwik';
 
-export default component$(() => <div>About</div>);
+export default component$(() => {
+  return (
+    <>
+      <h1>Hi account</h1>
+    </>
+  );
+});
