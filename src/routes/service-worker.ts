@@ -11,18 +11,23 @@ import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
 
 setupServiceWorker();
 
-self.addEventListener('install', (event) => {
+// Event d'installation du service worker
+self.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.open('offline-cache').then((cache) => {
       return cache.addAll([
-        '/', // Cache la page d'accueil ou la route principale
+        '/', // Cache la page d'accueil
+        '/build/qwik.js', // Fichier JS généré par Qwik
+        '/build/qwik.css', // Fichier CSS généré par Qwik
+        '/offline.html', // Page fallback hors-ligne (si nécessaire)
       ]);
     })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+// Event d'activation du service worker
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -37,24 +42,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
+// Event de fetch pour intercepter les requêtes
+self.addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       // Si le cache retourne une réponse, on l'utilise
-      return (
-        response ||
-        fetch(event.request).catch(() => {
-          // En cas d'échec réseau, on retourne la page hors-ligne
-          return caches.match('/offline.html').then((offlineResponse) => {
-            if (offlineResponse) {
-              return offlineResponse;
-            } else {
-              // Si même la page offline n'est pas trouvée, on retourne une réponse par défaut
-              return new Response('Offline page not found', { status: 404 });
-            }
-          });
-        })
-      );
+      if (response) {
+        return response;
+      }
+      // Sinon, on fait une requête réseau
+      return fetch(event.request).catch(() => {
+        // En cas d'échec réseau, on retourne la page hors-ligne si elle est dans le cache
+        return caches.match('/offline.html').then((offlineResponse) => {
+          if (offlineResponse) {
+            return offlineResponse;
+          } else {
+            // Si même la page offline n'est pas trouvée, on retourne une réponse par défaut
+            return new Response('Offline page not found', { status: 404 });
+          }
+        });
+      });
     })
   );
 });
