@@ -8,6 +8,37 @@
  * You can also use this file to add more functionality that runs in the service worker.
  */
 import { setupServiceWorker } from '@builder.io/qwik-city/service-worker';
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
+
+const revision = import.meta.env.VITE_GIT_COMMIT_HASH;
+
+precacheAndRoute([
+  { url: '/', revision },
+  { url: '/icon/icon-192x192.png', revision },
+  { url: '/icon/icon-256x256.png', revision },
+  { url: '/icon/icon-384x384.png', revision },
+  { url: '/icon/icon-512x512.png', revision },
+  {
+    url: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+    revision: '1.6.0',
+  },
+]);
+
+cleanupOutdatedCaches();
+
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/')));
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/?pwa=true')));
+registerRoute(
+  ({ request }) =>
+    request.destination === 'style' || request.destination === 'image',
+  new CacheFirst()
+);
 
 setupServiceWorker();
 
