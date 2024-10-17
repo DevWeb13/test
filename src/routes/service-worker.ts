@@ -70,6 +70,7 @@ precacheAndRoute([
   { url: '/', revision },
   { url: '/about/', revision },
   { url: '/service-worker.js', revision },
+  { url: '/manifest.json', revision },
 ]);
 cleanupOutdatedCaches();
 registerRoute(new NavigationRoute(createHandlerBoundToURL('/')));
