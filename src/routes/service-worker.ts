@@ -63,8 +63,13 @@ import {
   precacheAndRoute,
 } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
 
-const revision = import.meta.env.BUILD_NUMBER;
+const url = new URL(location.href);
+
+console.log('Service Worker URL:', url);
+
+const revision = null;
 
 precacheAndRoute([
   { url: '/', revision },
@@ -72,5 +77,14 @@ precacheAndRoute([
   { url: '/service-worker.js', revision },
   { url: '/manifest.json', revision },
 ]);
+
 cleanupOutdatedCaches();
 registerRoute(new NavigationRoute(createHandlerBoundToURL('/')));
+
+// intercept network requests of CSS, Image
+registerRoute(({ request }) => {
+  request.destination === 'style' || request.destination === 'image';
+  new CacheFirst({
+    cacheName: 'qwik-app-static-assets',
+  });
+});
